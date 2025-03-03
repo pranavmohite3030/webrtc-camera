@@ -1,24 +1,19 @@
+const express = require("express");
+const http = require("http");
 const WebSocket = require("ws");
-const wss = new WebSocket.Server({ port: 8080 });
+const cors = require("cors");
 
-let client = null;
+const app = express();
+app.use(cors()); // Enable CORS
 
-wss.on("connection", ws => {
-    console.log("New client connected");
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
 
-    ws.on("message", message => {
-        const data = JSON.parse(message);
-        if (data.offer) {
-            client = ws;
-        } else if (data.answer && client) {
-            client.send(JSON.stringify(data));
-        }
-    });
-
-    ws.on("close", () => {
-        console.log("Client disconnected");
-        client = null;
+wss.on("connection", (ws) => {
+    ws.on("message", (message) => {
+        console.log("Received:", message);
+        ws.send("Hello from server!");
     });
 });
 
-console.log("WebSocket Server running on ws://localhost:8080");
+server.listen(8080, () => console.log("Server running on port 8080"));
